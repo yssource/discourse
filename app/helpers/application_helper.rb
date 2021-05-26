@@ -97,6 +97,7 @@ module ApplicationHelper
 
   def preload_script(script)
     path = script_asset_path(script)
+    send_preload_links_header("<#{path}>; rel=preload; as=script")
     preload_script_url(path)
   end
 
@@ -596,6 +597,16 @@ module ApplicationHelper
   def hijack_if_ember_cli!
     if request.headers["HTTP_X_DISCOURSE_EMBER_CLI"] == "true"
       raise ApplicationController::EmberCLIHijacked.new
+    end
+  end
+
+  def send_preload_links_header(preload_link)
+    if respond_to?(:request) && request
+      request.send_early_hints("Link" => preload_link)
+    end
+
+    if respond_to?(:response) && response
+      response.headers["Link"] = [response.headers["Link"].presence, preload_link].compact.join(",")
     end
   end
 end
