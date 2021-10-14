@@ -24,8 +24,8 @@
   @extend .topic-list-icons;
 
   margin: 0 0 10px;
-  th,
-  td {
+  .th,
+  .td {
     padding: 12px 5px;
     &:first-of-type {
       padding-left: 10px;
@@ -40,7 +40,7 @@
     line-height: $line-height-large;
   }
 
-  td.bulk-select {
+  .td.bulk-select {
     padding: 0;
     width: 30px;
     label {
@@ -68,7 +68,7 @@
   .posters {
     // we know there are up to 5 avatars of fixed size
     // will be overridden by media width queries on narrow displays to 1 avatar's width
-    width: 146px;
+    // width: 146px;
     > a {
       float: left;
       margin-right: 4px;
@@ -84,7 +84,7 @@
       }
     }
   }
-  td.posters {
+  .td.posters {
     height: $td-posters-height;
   }
   .posters a:first-child .avatar.latest:not(.single) {
@@ -95,15 +95,16 @@
     left: -2px;
   }
 
-  .likes {
-    width: 65px;
-  }
-  .views {
-    width: 65px;
-  }
-  .posts {
-    width: 65px;
-  }
+  // .likes {
+  //   display: flex;
+  //   width: 65px;
+  // }
+  // .views {
+  //   width: 65px;
+  // }
+  // .posts {
+  //   width: 65px;
+  // }
 
   .post-actions {
     clear: both;
@@ -122,7 +123,7 @@
     }
   }
   .activity {
-    width: 60px;
+    // width: 60px;
     &:lang(zh_CN) {
       width: 80px;
     }
@@ -212,20 +213,20 @@ button.dismiss-read {
 
   .topic-list {
     // tighter table header spacing
-    th:first-of-type {
+    .th:first-of-type {
       padding: 12px 5px;
     }
     // smaller table cell spacing
-    th,
-    td {
+    .th,
+    .td {
       padding: 10px;
       font-size: $font-0;
     }
     // suppress views column
-    th.views {
+    .th.views {
       display: none;
     }
-    td.views {
+    .td.views {
       display: none;
     }
     // reduce width for more title space
@@ -237,7 +238,7 @@ button.dismiss-read {
       text-align: center;
     }
     // show only the first poster
-    td.posters {
+    .td.posters {
       a:not(.latest) {
         display: none;
       }

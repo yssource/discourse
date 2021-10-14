@@ -36,8 +36,8 @@ export function navigateToTopic(topic, href) {
 }
 
 export default Component.extend({
-  tagName: "tr",
-  classNameBindings: [":topic-list-item", "unboundClassNames", "topic.visited"],
+  tagName: "div",
+  classNameBindings: [":topic-list-item", "unboundClassNames", "topic.visited", ":tr",],
   attributeBindings: ["data-topic-id", "role", "ariaLevel:aria-level"],
   "data-topic-id": alias("topic.id"),
 

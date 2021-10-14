@@ -1,11 +1,11 @@
 {{~raw-plugin-outlet name="topic-list-before-columns"}}
 
 {{#if bulkSelectEnabled}}
-  <td class="bulk-select">
+  <div class="bulk-select">
     <label for="bulk-select-{{topic.id}}">
       <input type="checkbox" class="bulk-select" id="bulk-select-{{topic.id}}">
     </label>
-  </td>
+  </div>
 {{/if}}
 
 {{!--
@@ -15,23 +15,23 @@
   This causes the topic-post-badge to be considered the same word as "text"
   at the end of the link, preventing it from line wrapping onto its own line.
 --}}
-<td class='main-link clearfix' colspan="1">
+<div class='main-link clearfix td' colspan="1">
   {{~raw-plugin-outlet name="topic-list-before-link"}}
-  <span class='link-top-line'>
+  <div class='link-top-line'>
     {{~raw-plugin-outlet name="topic-list-before-status"}}
     {{~raw "topic-status" topic=topic}}
     {{~topic-link topic class="raw-link raw-topic-link"}}
     {{~#if topic.featured_link}}
-    {{~topic-featured-link topic}}
+      {{~topic-featured-link topic}}
     {{~/if}}
     {{~raw-plugin-outlet name="topic-list-after-title"}}
     {{~raw "list/unread-indicator" includeUnreadIndicator=includeUnreadIndicator
                                    topicId=topic.id
                                    unreadClass=unreadClass~}}
     {{~#if showTopicPostBadges}}
-    {{~raw "topic-post-badges" unreadPosts=topic.unread_posts unseen=topic.unseen url=topic.lastUnreadUrl newDotText=newDotText}}
+      {{~raw "topic-post-badges" unreadPosts=topic.unread_posts unseen=topic.unseen url=topic.lastUnreadUrl newDotText=newDotText}}
     {{~/if}}
-  </span>
+  </div>
   <div class="link-bottom-line">
     {{#unless hideCategory}}
       {{#unless topic.isPinnedUncategorized}}
@@ -45,7 +45,7 @@
   {{#if expandPinned}}
     {{raw "list/topic-excerpt" topic=topic}}
   {{/if}}
-</td>
+</div>
 
 {{#if showPosters}}
   {{raw "list/posters-column" posters=topic.featuredUsers}}
@@ -54,25 +54,25 @@
 {{raw "list/posts-count-column" topic=topic}}
 
 {{#if showLikes}}
-  <td class="num likes">
+  <div class="num likes td">
     {{#if hasLikes}}
       <a href='{{topic.summaryUrl}}'>
         {{number topic.like_count}} {{d-icon "heart"}}
       </a>
     {{/if}}
-  </td>
+  </div>
 {{/if}}
 
 {{#if showOpLikes}}
-  <td class="num likes">
+  <div class="num likes td">
     {{#if hasOpLikes}}
       <a href='{{topic.summaryUrl}}'>
         {{number topic.op_like_count}} {{d-icon "heart"}}
       </a>
     {{/if}}
-  </td>
+  </div>
 {{/if}}
 
-<td class="num views {{topic.viewsHeat}}">{{number topic.views numberKey="views_long"}}</td>
+<div class="num views {{topic.viewsHeat}} td">{{number topic.views numberKey="views_long"}}</div>
 
-{{raw "list/activity-column" topic=topic class="num" tagName="td"}}
+{{raw "list/activity-column" topic=topic class="num td" tagName="div"}}

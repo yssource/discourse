@@ -142,6 +142,9 @@
 }
 
 .topic-list-item {
+  display: grid;
+  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px,1fr));
+  align-items: center;
   .post-excerpt {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
@@ -169,7 +172,7 @@
   }
 }
 
-.sticky-header thead {
+.bulk-select-enabled .thead {
   @include sticky;
   top: var(--header-offset, 60px);
   background: var(--secondary);
@@ -180,7 +183,7 @@
   width: 100%;
   border-collapse: collapse;
 
-  > tbody > tr {
+  > .tbody > .tr {
     &.has-excerpt .star {
       vertical-align: top;
       margin-top: 2px;
@@ -198,14 +201,14 @@
   .topic-list-item-separator {
     border: none;
 
-    td {
+    .td {
       border-bottom: 1px solid var(--danger-medium);
       line-height: 0.1em;
       padding: 0;
       text-align: center;
     }
 
-    td span {
+    .td span {
       position: relative; // Chrome needs this, otherwise the line is above the text
       background-color: var(--secondary);
       color: var(--danger-medium);
@@ -214,8 +217,8 @@
     }
   }
 
-  th,
-  td {
+  .th,
+  .td {
     line-height: $line-height-large;
     text-align: left;
     vertical-align: middle;
@@ -223,7 +226,7 @@
   th .btn-flat .d-icon {
     color: currentColor;
   }
-  td {
+  .td {
     color: var(--primary-medium);
     font-size: $font-0;
   }
@@ -334,7 +337,7 @@
 .loading .topic-list {
   border: 0;
   box-shadow: none;
-  tr {
+  .tr {
     background-color: transparent;
   }
 }
@@ -414,4 +417,15 @@ div.education {
   white-space: nowrap;
   align-self: center;
   line-height: $line-height-medium;
+}
+
+.topic-list-header {
+  display: grid;
+  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px,1fr));
+  align-items: center;
+}
+
+.bulk-select-enabled .topic-list-item,
+.bulk-select-enabled .thead {
+  grid-template-columns: 2% 63% 14% repeat(auto-fit, minmax(75px, 1fr));
 }

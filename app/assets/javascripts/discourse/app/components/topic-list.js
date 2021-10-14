@@ -8,9 +8,9 @@ import { schedule } from "@ember/runloop";
 import showModal from "discourse/lib/show-modal";
 
 export default Component.extend(LoadMore, {
-  tagName: "table",
+  tagName: "div",
   classNames: ["topic-list"],
-  classNameBindings: ["bulkSelectEnabled:sticky-header"],
+  classNameBindings: ["bulkSelectEnabled:bulk-select-enabled"],
   showTopicPostBadges: true,
   listTitle: "topic.title",
   canDoBulkActions: and("currentUser.staff", "selected.length"),
@@ -194,7 +194,7 @@ export default Component.extend(LoadMore, {
       $("input.bulk-select:checked").click();
     });
 
-    onClick("th.sortable", function (e2) {
+    onClick(".th.sortable", function (e2) {
       this.changeSort(e2.data("sort-order"));
       this.rerender();
     });
