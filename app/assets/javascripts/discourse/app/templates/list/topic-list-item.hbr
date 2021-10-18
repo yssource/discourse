@@ -15,7 +15,7 @@
   This causes the topic-post-badge to be considered the same word as "text"
   at the end of the link, preventing it from line wrapping onto its own line.
 --}}
-<div class='main-link clearfix td' colspan="1">
+<div class='main-link clearfix table-data-cell' colspan="1">
   {{~raw-plugin-outlet name="topic-list-before-link"}}
   <div class='link-top-line'>
     {{~raw-plugin-outlet name="topic-list-before-status"}}
@@ -54,7 +54,7 @@
 {{raw "list/posts-count-column" topic=topic}}
 
 {{#if showLikes}}
-  <div class="num likes td">
+  <div class="num likes table-data-cell">
     {{#if hasLikes}}
       <a href='{{topic.summaryUrl}}'>
         {{number topic.like_count}} {{d-icon "heart"}}
@@ -64,7 +64,7 @@
 {{/if}}
 
 {{#if showOpLikes}}
-  <div class="num likes td">
+  <div class="num likes table-data-cell">
     {{#if hasOpLikes}}
       <a href='{{topic.summaryUrl}}'>
         {{number topic.op_like_count}} {{d-icon "heart"}}
@@ -73,6 +73,6 @@
   </div>
 {{/if}}
 
-<div class="num views {{topic.viewsHeat}} td">{{number topic.views numberKey="views_long"}}</div>
+<div class="num views {{topic.viewsHeat}} table-data-cell">{{number topic.views numberKey="views_long"}}</div>
 
-{{raw "list/activity-column" topic=topic class="num td" tagName="div"}}
+{{raw "list/activity-column" topic=topic class="num table-data-cell" tagName="div"}}

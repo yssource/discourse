@@ -20,12 +20,11 @@
   }
 }
 
-.topic-list {
+.topic-list-body, .table-header {
   @extend .topic-list-icons;
 
   margin: 0 0 10px;
-  .th,
-  .td {
+  .table-data-cell {
     padding: 12px 5px;
     &:first-of-type {
       padding-left: 10px;
@@ -40,7 +39,7 @@
     line-height: $line-height-large;
   }
 
-  .td.bulk-select {
+  .table-data-cell.bulk-select {
     padding: 0;
     width: 30px;
     label {
@@ -84,7 +83,7 @@
       }
     }
   }
-  .td.posters {
+  .table-data.posters {
     height: $td-posters-height;
   }
   .posters a:first-child .avatar.latest:not(.single) {
@@ -213,20 +212,20 @@ button.dismiss-read {
 
   .topic-list {
     // tighter table header spacing
-    .th:first-of-type {
+    .table-header-data:first-of-type {
       padding: 12px 5px;
     }
     // smaller table cell spacing
-    .th,
-    .td {
+    .table-header-data,
+    .table-data {
       padding: 10px;
       font-size: $font-0;
     }
     // suppress views column
-    .th.views {
+    .table-header-data.views {
       display: none;
     }
-    .td.views {
+    .table-data.views {
       display: none;
     }
     // reduce width for more title space
@@ -238,7 +237,7 @@ button.dismiss-read {
       text-align: center;
     }
     // show only the first poster
-    .td.posters {
+    .table-data.posters {
       a:not(.latest) {
         display: none;
       }

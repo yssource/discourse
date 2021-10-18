@@ -133,7 +133,7 @@ pre code {
   border-top: 3px solid var(--primary-low);
 }
 
-.tr {
+.table-row {
   border-bottom: 1px solid var(--primary-low);
   &.highlighted {
     animation: background-fade-highlight 2.5s ease-out;
@@ -141,7 +141,7 @@ pre code {
 }
 
 // https://en.wikipedia.org/wiki/Ruby_character
-ruby > .rt {
+ruby > .table-row {
   font-size: 72%; // ~10px with 14px base
 }
 

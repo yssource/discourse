@@ -143,7 +143,7 @@
 
 .topic-list-item {
   display: grid;
-  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px,1fr));
+  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px, 1fr));
   align-items: center;
   .post-excerpt {
     margin-top: 0.5em;
@@ -172,7 +172,7 @@
   }
 }
 
-.bulk-select-enabled .thead {
+.bulk-select-enabled .table-header {
   @include sticky;
   top: var(--header-offset, 60px);
   background: var(--secondary);
@@ -183,7 +183,7 @@
   width: 100%;
   border-collapse: collapse;
 
-  > .tbody > .tr {
+  > .table-body > .table-row {
     &.has-excerpt .star {
       vertical-align: top;
       margin-top: 2px;
@@ -201,14 +201,14 @@
   .topic-list-item-separator {
     border: none;
 
-    .td {
+    .table-data-cell {
       border-bottom: 1px solid var(--danger-medium);
       line-height: 0.1em;
       padding: 0;
       text-align: center;
     }
 
-    .td span {
+    .table-data-cell span {
       position: relative; // Chrome needs this, otherwise the line is above the text
       background-color: var(--secondary);
       color: var(--danger-medium);
@@ -217,16 +217,16 @@
     }
   }
 
-  .th,
-  .td {
+  .table-header-data,
+  .table-data-cell {
     line-height: $line-height-large;
     text-align: left;
     vertical-align: middle;
   }
-  th .btn-flat .d-icon {
+  .table-header-data .btn-flat .d-icon {
     color: currentColor;
   }
-  .td {
+  .table-data-cell {
     color: var(--primary-medium);
     font-size: $font-0;
   }
@@ -337,7 +337,7 @@
 .loading .topic-list {
   border: 0;
   box-shadow: none;
-  .tr {
+  .table-row {
     background-color: transparent;
   }
 }
@@ -419,13 +419,13 @@ div.education {
   line-height: $line-height-medium;
 }
 
-.topic-list-header {
+.topic-list-heading {
   display: grid;
-  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px,1fr));
+  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px, 1fr));
   align-items: center;
 }
 
 .bulk-select-enabled .topic-list-item,
-.bulk-select-enabled .thead {
+.bulk-select-enabled .table-header {
   grid-template-columns: 2% 63% 14% repeat(auto-fit, minmax(75px, 1fr));
 }
