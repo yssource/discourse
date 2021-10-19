@@ -194,7 +194,7 @@ export default Component.extend(LoadMore, {
       $("input.bulk-select:checked").click();
     });
 
-    onClick(".table-data-cell.sortable", function (e2) {
+    onClick(".topic-list-data.sortable", function (e2) {
       this.changeSort(e2.data("sort-order"));
       this.rerender();
     });

@@ -172,7 +172,7 @@
   }
 }
 
-.bulk-select-enabled .table-header {
+.bulk-select-enabled .topic-list-header {
   @include sticky;
   top: var(--header-offset, 60px);
   background: var(--secondary);
@@ -183,7 +183,7 @@
   width: 100%;
   border-collapse: collapse;
 
-  > .table-body > .table-row {
+  > .table-body > .topic-list-row {
     &.has-excerpt .star {
       vertical-align: top;
       margin-top: 2px;
@@ -201,14 +201,14 @@
   .topic-list-item-separator {
     border: none;
 
-    .table-data-cell {
+    .topic-list-data {
       border-bottom: 1px solid var(--danger-medium);
       line-height: 0.1em;
       padding: 0;
       text-align: center;
     }
 
-    .table-data-cell span {
+    .topic-list-data span {
       position: relative; // Chrome needs this, otherwise the line is above the text
       background-color: var(--secondary);
       color: var(--danger-medium);
@@ -217,8 +217,7 @@
     }
   }
 
-  .table-header-data,
-  .table-data-cell {
+  .topic-list-data {
     line-height: $line-height-large;
     text-align: left;
     vertical-align: middle;
@@ -226,7 +225,7 @@
   .btn-flat .d-icon {
     color: currentColor;
   }
-  .table-data-cell {
+  .topic-list-data {
     color: var(--primary-medium);
   }
 
@@ -336,7 +335,7 @@
 .loading .topic-list {
   border: 0;
   box-shadow: none;
-  .table-row {
+  .topic-list-row {
     background-color: transparent;
   }
 }
@@ -418,13 +417,13 @@ div.education {
   line-height: $line-height-medium;
 }
 
-.topic-list-heading {
+.topic-list-header {
   display: grid;
   grid-template-columns: 65% 13% repeat(auto-fit, minmax(75px, 1fr));
   align-items: center;
 }
 
 .bulk-select-enabled .topic-list-item,
-.bulk-select-enabled .table-header {
+.bulk-select-enabled .topic-list-header {
   grid-template-columns: 2% 63% 13% repeat(auto-fit, minmax(75px, 1fr));
 }

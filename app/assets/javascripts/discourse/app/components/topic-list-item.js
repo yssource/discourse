@@ -41,7 +41,7 @@ export default Component.extend({
     ":topic-list-item",
     "unboundClassNames",
     "topic.visited",
-    ":table-row",
+    ":topic-list-row",
   ],
   attributeBindings: ["data-topic-id", "role", "ariaLevel:aria-level"],
   "data-topic-id": alias("topic.id"),

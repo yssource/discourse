@@ -20,10 +20,10 @@
   }
 }
 
-.topic-list-body, .table-header {
+.topic-list-body, .topic-list-header {
   @extend .topic-list-icons;
 
-  .table-data-cell {
+  .topic-list-data {
     padding: 12px 5px;
     &:first-of-type {
       padding-left: 10px;
@@ -38,7 +38,7 @@
     line-height: $line-height-large;
   }
 
-  .table-data-cell.bulk-select {
+  .topic-list-data.bulk-select {
     padding: 0;
     width: 30px;
     label {
@@ -211,17 +211,17 @@ button.dismiss-read {
 
   .topic-list {
     // tighter table header spacing
-    .table-header-data:first-of-type {
+    .topic-list-data:first-of-type {
       padding: 12px 5px;
     }
     // smaller table cell spacing
-    .table-header-data,
+    .topic-list-data,
     .table-data {
       padding: 10px;
       font-size: $font-0;
     }
     // suppress views column
-    .table-header-data.views {
+    .topic-list-data.views {
       display: none;
     }
     .table-data.views {
