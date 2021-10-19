@@ -125,10 +125,6 @@ pre code {
 // Tables
 // --------------------------------------------------
 
-// table {
-//   border-collapse: collapse;
-// }
-
 .topic-list-body {
   border-top: 3px solid var(--primary-low);
 }
@@ -141,7 +137,7 @@ pre code {
 }
 
 // https://en.wikipedia.org/wiki/Ruby_character
-ruby > .topic-list-row {
+ruby > rt {
   font-size: 72%; // ~10px with 14px base
 }
 
