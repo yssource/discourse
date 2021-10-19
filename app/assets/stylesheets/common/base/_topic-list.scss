@@ -228,7 +228,6 @@
   }
   .table-data-cell {
     color: var(--primary-medium);
-    font-size: $font-0;
   }
 
   .main-link {
@@ -421,11 +420,11 @@ div.education {
 
 .topic-list-heading {
   display: grid;
-  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px, 1fr));
+  grid-template-columns: 65% 13% repeat(auto-fit, minmax(75px, 1fr));
   align-items: center;
 }
 
 .bulk-select-enabled .topic-list-item,
 .bulk-select-enabled .table-header {
-  grid-template-columns: 2% 63% 14% repeat(auto-fit, minmax(75px, 1fr));
+  grid-template-columns: 2% 63% 13% repeat(auto-fit, minmax(75px, 1fr));
 }
