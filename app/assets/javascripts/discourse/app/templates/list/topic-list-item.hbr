@@ -17,7 +17,7 @@
 --}}
 <div class='main-link clearfix topic-list-data' colspan="1">
   {{~raw-plugin-outlet name="topic-list-before-link"}}
-  <div class='link-top-line'>
+  <span class='link-top-line'>
     {{~raw-plugin-outlet name="topic-list-before-status"}}
     {{~raw "topic-status" topic=topic}}
     {{~topic-link topic class="raw-link raw-topic-link"}}
@@ -31,7 +31,7 @@
     {{~#if showTopicPostBadges}}
       {{~raw "topic-post-badges" unreadPosts=topic.unread_posts unseen=topic.unseen url=topic.lastUnreadUrl newDotText=newDotText}}
     {{~/if}}
-  </div>
+  </span>
   <div class="link-bottom-line">
     {{#unless hideCategory}}
       {{#unless topic.isPinnedUncategorized}}

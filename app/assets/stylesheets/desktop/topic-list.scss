@@ -20,18 +20,18 @@
   }
 }
 
-.topic-list-body, .topic-list-header {
-  @extend .topic-list-icons;
-
-  .topic-list-data {
-    padding: 12px 5px;
-    &:first-of-type {
-      padding-left: 10px;
-    }
-    &:last-of-type {
-      padding-right: 10px;
-    }
+.topic-list-data {
+  padding: 12px 5px;
+  &:first-of-type {
+    padding-left: 10px;
   }
+  &:last-of-type {
+    padding-right: 10px;
+  }
+}
+
+.topic-list-body {
+  @extend .topic-list-icons;
 
   button.bulk-select {
     padding: 0;
@@ -81,7 +81,7 @@
       }
     }
   }
-  .table-data.posters {
+  .topic-list-data.posters {
     height: $td-posters-height;
   }
   .posters a:first-child .avatar.latest:not(.single) {
@@ -203,7 +203,7 @@ button.dismiss-read {
     }
     // smaller table cell spacing
     .topic-list-data,
-    .table-data {
+    .topic-list-data {
       padding: 10px;
       font-size: $font-0;
     }
@@ -211,7 +211,7 @@ button.dismiss-read {
     .topic-list-data.views {
       display: none;
     }
-    .table-data.views {
+    .topic-list-data.views {
       display: none;
     }
     // reduce width for more title space
@@ -223,7 +223,7 @@ button.dismiss-read {
       text-align: center;
     }
     // show only the first poster
-    .table-data.posters {
+    .topic-list-data.posters {
       a:not(.latest) {
         display: none;
       }
