@@ -166,8 +166,7 @@ class ReviewableQueuedPost < Reviewable
   end
 
   def status_changed_from_or_to_pending?
-    saved_change_to_id?(from: nil) && pending? ||
-      saved_change_to_status?(from: self.class.statuses[:pending])
+    saved_change_to_id?(from: nil) && pending? || saved_change_to_status?(from: self.class.statuses[:pending])
   end
 end
 
