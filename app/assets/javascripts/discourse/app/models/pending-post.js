@@ -2,12 +2,12 @@ import discourseComputed from "discourse-common/utils/decorators";
 import RestModel from "discourse/models/rest";
 import categoryFromId from "discourse-common/utils/category-macro";
 import { userPath } from "discourse/lib/url";
-import { alias } from "@ember/object/computed";
+import { reads } from "@ember/object/computed";
 import { cookAsync } from "discourse/lib/text";
 
 const PendingPost = RestModel.extend({
   expandedExcerpt: null,
-  postUrl: alias("topic_url"),
+  postUrl: reads("topic_url"),
   truncated: false,
 
   init() {
