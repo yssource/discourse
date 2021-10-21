@@ -34,7 +34,7 @@
         <div class='pull-right'>
           {{raw "list/post-count-or-badges" topic=topic postBadgesEnabled=showTopicPostBadges}}
         </div>
-        <div class="topic-item-stats clearfix">
+        <div class="topic-item-stats">
           {{#unless hideCategory}}
             {{~raw-plugin-outlet name="topic-list-before-category"}}
             <div class='category'>
@@ -49,7 +49,6 @@
               </span>
             </div>
           </div>
-          <div class="clearfix"></div>
         </div>
       </div>
 </td>

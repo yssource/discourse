@@ -5,6 +5,24 @@
 // Base list
 // --------------------------------------------------
 
+// Flex Layout
+.topic-list-header, .topic-list-item {
+  display: flex;
+  align-items: center;
+}
+
+.topic-list-data {
+  &.main-link, &.default {
+    flex-grow: 1;
+  }
+  &.posters {
+    width: 146px;
+  }
+  &.posts, &.views, &.activity {
+    min-width: 65px;
+  }
+}
+
 .topic-list-icons {
   .d-icon-thumbtack {
     color: var(--primary-med-or-secondary-med);

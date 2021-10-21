@@ -142,9 +142,6 @@
 }
 
 .topic-list-item {
-  display: grid;
-  grid-template-columns: 65% 14% repeat(auto-fit, minmax(75px, 1fr));
-  align-items: center;
   .post-excerpt {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
@@ -415,15 +412,4 @@ div.education {
   white-space: nowrap;
   align-self: center;
   line-height: $line-height-medium;
-}
-
-.topic-list-header {
-  display: grid;
-  grid-template-columns: 65% 13% repeat(auto-fit, minmax(75px, 1fr));
-  align-items: center;
-}
-
-.bulk-select-enabled .topic-list-item,
-.bulk-select-enabled .topic-list-header {
-  grid-template-columns: 2% 63% 13% repeat(auto-fit, minmax(75px, 1fr));
 }
