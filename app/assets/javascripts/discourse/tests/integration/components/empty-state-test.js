@@ -7,20 +7,11 @@ module("Integration | Component | empty-state", function (hooks) {
   setupRenderingTest(hooks);
 
   test("it renders", async function (assert) {
-    // Set any properties with this.set('myProperty', 'value');
-    // Handle any actions with this.set('myAction', function(val) { ... });
-
-    await render(hbs`<EmptyState />`);
-
-    assert.equal(this.element.textContent.trim(), "");
-
-    // Template block usage:
     await render(hbs`
-      <EmptyState>
-        template block text
-      </EmptyState>
+      <EmptyState @title="title" @body="body" />
     `);
 
-    assert.equal(this.element.textContent.trim(), "template block text");
+    assert.dom("[data-test-title]").hasText("title");
+    assert.dom("[data-test-body]").hasText("body");
   });
 });

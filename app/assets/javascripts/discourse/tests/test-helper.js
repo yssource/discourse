@@ -1,6 +1,7 @@
 import config from "../config/environment";
 import { setEnvironment } from "discourse-common/config/environment";
 import { start } from "ember-qunit";
+import { setup } from "qunit-dom";
 
 setEnvironment("testing");
 
@@ -19,6 +20,7 @@ document.addEventListener("discourse-booted", () => {
     `
   );
 
+  setup(QUnit.assert);
   setupTests(config.APP);
   start({ setupTestContainer: false });
 });
