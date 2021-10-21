@@ -6,19 +6,23 @@
 // --------------------------------------------------
 
 // Flex Layout
-.topic-list-header, .topic-list-item {
+.topic-list-header,
+.topic-list-item {
   display: flex;
   align-items: center;
 }
 
 .topic-list-data {
-  &.main-link, &.default {
+  &.main-link,
+  &.default {
     flex-grow: 1;
   }
   &.posters {
     width: 146px;
   }
-  &.posts, &.views, &.activity {
+  &.posts,
+  &.views,
+  &.activity {
     min-width: 65px;
   }
 }
