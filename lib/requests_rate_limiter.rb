@@ -3,7 +3,7 @@
 class RequestsRateLimiter
   attr_reader :current_user, :request
 
-  def initialize(user, request)
+  def initialize(user_id, trust_level, timestamp, request)
     @current_user = user
     @request = request
   end
