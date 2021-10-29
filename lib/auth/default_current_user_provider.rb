@@ -12,6 +12,7 @@ class Auth::DefaultCurrentUserProvider
   HEADER_API_USER_ID ||= "HTTP_API_USER_ID"
   PARAMETER_USER_API_KEY ||= "user_api_key"
   USER_API_KEY ||= "HTTP_USER_API_KEY"
+  HASHED_USER_API_KEY ||= "_DISCOURSE_HASHED_USER_API_KEY"
   USER_API_CLIENT_ID ||= "HTTP_USER_API_CLIENT_ID"
   API_KEY_ENV ||= "_DISCOURSE_API"
   USER_API_KEY_ENV ||= "_DISCOURSE_USER_API"
@@ -86,17 +87,30 @@ class Auth::DefaultCurrentUserProvider
       api_key ||= request[API_KEY]
     end
 
-    auth_token = request.cookies[TOKEN_COOKIE] unless user_api_key || api_key
+    auth_cookie = request.cookies[TOKEN_COOKIE].presence unless user_api_key || api_key
+    if auth_cookie
+      begin
+        cookie = DiscourseAuthCookie.parse(auth_cookie)
+        # the age check here is not super accurate since the
+        # maximum_session_age site setting can change after the
+        # auth token has been created. skip the check here and a
+        # more accurate age check is done in the SQL query when
+        # looking up the auth token record
+        cookie.validate!(validate_age: false)
+      rescue  DiscourseAuthCookie::InvalidCookie
+        cookie = nil
+      end
+    end
 
     current_user = nil
 
-    if auth_token && auth_token.length == 32
+    if cookie
       limiter = RateLimiter.new(nil, "cookie_auth_#{request.ip}", COOKIE_ATTEMPTS_PER_MIN , 60)
 
       if limiter.can_perform?
         @user_token = begin
           UserAuthToken.lookup(
-            auth_token,
+            cookie.token,
             seen: true,
             user_agent: @env['HTTP_USER_AGENT'],
             path: @env['REQUEST_PATH'],
@@ -128,45 +142,43 @@ class Auth::DefaultCurrentUserProvider
     # possible we have an api call, impersonate
     if api_key
       current_user = lookup_api_user(api_key, request)
-      raise Discourse::InvalidAccess.new(I18n.t('invalid_api_credentials'), nil, custom_message: "invalid_api_credentials") unless current_user
+      if !current_user
+        raise Discourse::InvalidAccess.new(
+          I18n.t('invalid_api_credentials'),
+          nil,
+          custom_message: "invalid_api_credentials"
+        )
+      end
       raise Discourse::InvalidAccess if current_user.suspended? || !current_user.active
+      admin_api_key_limiter.performed! if !Rails.env.profile?
       @env[API_KEY_ENV] = true
-      rate_limit_admin_api_requests!
     end
 
     # user api key handling
     if user_api_key
       hashed_user_api_key = ApiKey.hash_key(user_api_key)
-      limiter_min = RateLimiter.new(nil, "user_api_min_#{hashed_user_api_key}", GlobalSetting.max_user_api_reqs_per_minute, 60)
-      limiter_day = RateLimiter.new(nil, "user_api_day_#{hashed_user_api_key}", GlobalSetting.max_user_api_reqs_per_day, 86400)
-
-      unless limiter_day.can_perform?
-        limiter_day.performed!
-      end
-
-      unless  limiter_min.can_perform?
-        limiter_min.performed!
-      end
+      @env[HASHED_USER_API_KEY] = hashed_user_api_key
 
       user_api_key_obj = UserApiKey
         .active
         .with_key(user_api_key)
         .includes(:user, :scopes)
         .first
+
       raise Discourse::InvalidAccess unless user_api_key_obj
+
+      user_api_key_limiter_60_mins.performed!
+      user_api_key_limiter_1_day.performed!
 
       user_api_key_obj.ensure_allowed!(@env)
 
-      current_user = api_key.user
+      current_user = user_api_key_obj.user
       raise Discourse::InvalidAccess if !current_user
       raise Discourse::InvalidAccess if current_user.suspended? || !current_user.active
 
       if can_write?
         user_api_key_obj.update_last_used!(@env[USER_API_CLIENT_ID])
       end
-
-      limiter_min.performed!
-      limiter_day.performed!
 
       @env[USER_API_KEY_ENV] = true
     end
@@ -204,7 +216,7 @@ class Auth::DefaultCurrentUserProvider
         if @user_token.rotate!(user_agent: @env['HTTP_USER_AGENT'],
                                client_ip: @request.ip,
                                path: @env['REQUEST_PATH'])
-          cookies[TOKEN_COOKIE] = cookie_hash(@user_token.unhashed_auth_token)
+          cookies[TOKEN_COOKIE] = cookie_hash(@user_token.unhashed_auth_token, user)
           DiscourseEvent.trigger(:user_session_refreshed, user)
         end
       end
@@ -224,7 +236,7 @@ class Auth::DefaultCurrentUserProvider
       staff: user.staff?,
       impersonate: opts[:impersonate])
 
-    cookies[TOKEN_COOKIE] = cookie_hash(@user_token.unhashed_auth_token)
+    cookies[TOKEN_COOKIE] = cookie_hash(@user_token.unhashed_auth_token, user)
     user.unstage!
     make_developer_admin(user)
     enable_bootstrap_mode(user)
@@ -234,9 +246,16 @@ class Auth::DefaultCurrentUserProvider
     @env[CURRENT_USER_KEY] = user
   end
 
-  def cookie_hash(unhashed_auth_token)
+  def cookie_hash(unhashed_auth_token, user)
+    cookie = DiscourseAuthCookie.new(
+      token: unhashed_auth_token,
+      user_id: user.id,
+      trust_level: user.trust_level,
+      timestamp: Time.zone.now,
+      valid_for: SiteSetting.maximum_session_age.hours
+    )
     hash = {
-      value: unhashed_auth_token,
+      value: cookie.to_text(Rails.application.secret_key_base),
       httponly: true,
       secure: SiteSetting.force_https
     }
@@ -302,8 +321,13 @@ class Auth::DefaultCurrentUserProvider
   end
 
   def has_auth_cookie?
-    cookie = @request.cookies[TOKEN_COOKIE]
-    !cookie.nil? && cookie.length == 32
+    cookie_string = @request.cookies[TOKEN_COOKIE]
+    return false if cookie_string.nil?
+    cookie = DiscourseAuthCookie.parse(cookie_string)
+    cookie.validate!
+    true
+  rescue DiscourseAuthCookie::InvalidAccess
+    false
   end
 
   def should_update_last_seen?
@@ -365,27 +389,53 @@ class Auth::DefaultCurrentUserProvider
     !!@env[HEADER_API_KEY]
   end
 
-  def rate_limit_admin_api_requests!
-    return if Rails.env == "profile"
-
-    limit = GlobalSetting.max_admin_api_reqs_per_minute.to_i
-    if GlobalSetting.respond_to?(:max_admin_api_reqs_per_key_per_minute)
-      Discourse.deprecate("DISCOURSE_MAX_ADMIN_API_REQS_PER_KEY_PER_MINUTE is deprecated. Please use DISCOURSE_MAX_ADMIN_API_REQS_PER_MINUTE")
-      limit = [ GlobalSetting.max_admin_api_reqs_per_key_per_minute.to_i, limit].max
-    end
-
-    global_limit = RateLimiter.new(
-      nil,
-      "admin_api_min",
-      limit,
-      60
-    )
-
-    global_limit.performed!
-  end
-
   def can_write?
     @can_write ||= !Discourse.pg_readonly_mode?
   end
 
+  def admin_api_key_limiter
+    return @admin_api_key_limiter if @admin_api_key_limiter
+
+    limit = GlobalSetting.max_admin_api_reqs_per_minute.to_i
+    if GlobalSetting.respond_to?(:max_admin_api_reqs_per_key_per_minute)
+      Discourse.deprecate("DISCOURSE_MAX_ADMIN_API_REQS_PER_KEY_PER_MINUTE is deprecated. Please use DISCOURSE_MAX_ADMIN_API_REQS_PER_MINUTE")
+      limit = [
+        GlobalSetting.max_admin_api_reqs_per_key_per_minute.to_i,
+        limit
+      ].max
+    end
+    @admin_api_key_limiter = RateLimiter.new(
+      nil,
+      "admin_api_min",
+      limit,
+      60,
+      error_code: "admin_api_key_rate_limit"
+    )
+  end
+
+  def user_api_key_limiter_60_mins
+    return @user_api_key_limiter_60_mins if @user_api_key_limiter_60_mins
+
+    hashed_user_api_key = @env[HASHED_USER_API_KEY]
+    @user_api_key_limiter_60_mins = RateLimiter.new(
+      nil,
+      "user_api_min_#{hashed_user_api_key}",
+      GlobalSetting.max_user_api_reqs_per_minute,
+      60,
+      error_code: "user_api_key_limiter_60_mins"
+    )
+  end
+
+  def user_api_key_limiter_1_day
+    return @user_api_key_limiter_1_day if @user_api_key_limiter_1_day
+
+    hashed_user_api_key = @env[HASHED_USER_API_KEY]
+    @user_api_key_limiter_1_day = RateLimiter.new(
+      nil,
+      "user_api_day_#{hashed_user_api_key}",
+      GlobalSetting.max_user_api_reqs_per_day,
+      86400,
+      error_code: "user_api_key_limiter_1_day"
+    )
+  end
 end

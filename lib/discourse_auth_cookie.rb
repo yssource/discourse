@@ -57,8 +57,6 @@ class DiscourseAuthCookie
       timestamp: timestamp,
       valid_for: valid_for,
     )
-  rescue InvalidCookie
-    nil
   end
 
   def self.validate_signature!(data, sig, secret)
@@ -79,8 +77,6 @@ class DiscourseAuthCookie
     @trust_level = trust_level.to_i if trust_level
     @timestamp = timestamp.to_i if timestamp
     @valid_for = valid_for.to_i if valid_for
-
-    validate!
   end
 
   def to_text(secret)
@@ -94,11 +90,20 @@ class DiscourseAuthCookie
     [data, self.class.compute_signature(data, secret)].join("|")
   end
 
+  def validate!(validate_age: true)
+    validate_token!
+    validate_age! if validate_age
+  end
+
   private
 
-  def validate!
+  def validate_token!
     raise InvalidCookie.new if token.blank? || token.size != TOKEN_SIZE
-    if valid_for && timestamp && timestamp + valid_for < Time.zone.now.to_i
+  end
+
+  def validate_age!
+    return if !(valid_for && timestamp)
+    if timestamp + valid_for < Time.zone.now.to_i
       raise InvalidCookie.new
     end
   end

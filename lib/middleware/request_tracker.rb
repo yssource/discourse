@@ -176,10 +176,21 @@ class Middleware::RequestTracker
     ::Middleware::RequestTracker.populate_request_queue_seconds!(env)
 
     request = Rack::Request.new(env)
-    cookie_str = request.cookies[Auth::DefaultCurrentUserProvider::TOKEN_COOKIE].presence
-    cookie = DiscourseAuthCookie.parse(cookie_str) if cookie_str
+    cookie_string = request.cookies[Auth::DefaultCurrentUserProvider::TOKEN_COOKIE].presence
+    if cookie_string
+      begin
+        cookie = DiscourseAuthCookie.parse(cookie_string)
+        cookie.validate!
+      rescue DiscourseAuthCookie::InvalidCookie
+        cookie = nil
+      end
+    end
 
-    limiter = RequestsRateLimiter.new(nil, request)
+    limiter = RequestsRateLimiter.new(
+      user_id: cookie&.user_id,
+      trust_level: cookie&.trust_level,
+      request: request
+    )
     limiter.apply_limits! do
       env["discourse.request_tracker"] = self
 
