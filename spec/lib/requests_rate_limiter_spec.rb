@@ -3,9 +3,28 @@
 require "rails_helper"
 
 describe RequestsRateLimiter do
-  fab!(:user) { Fabricate(:user) }
+  def assert_rate_limit_response(response, expected)
+    status, headers, body = response
+    expect(status).to eq(429)
+    expect(headers["Discourse-Rate-Limit-Error-Code"]).to eq(expected)
+    expect(body.first).to include("Error code: #{expected}")
+  end
 
-  def instance(env = {}, u = user)
+  class TestLogger
+    attr_accessor :warnings
+
+    def initialize
+      @warnings = 0
+    end
+
+    def warn(*args)
+      @warnings += 1
+    end
+  end
+
+  fab!(:user) { Fabricate(:user, trust_level: 2) }
+
+  def instance(env = {}, u = nil)
     RequestsRateLimiter.new(
       user_id: u&.id,
       trust_level: u&.trust_level,
@@ -14,10 +33,15 @@ describe RequestsRateLimiter do
   end
 
   before do
+    @old_logger = Rails.logger
+    Rails.logger = TestLogger.new
     RateLimiter.enable
+    RateLimiter.clear_all!
+    RateLimiter.clear_all_global!
   end
 
   after do
+    Rails.logger = @old_logger
     RateLimiter.disable
   end
 
@@ -71,7 +95,7 @@ describe RequestsRateLimiter do
           ins.request.env['DISCOURSE_IS_ASSET_PATH'] = false
         end
       }.to change { ins.limiter_10_secs.remaining }.by(-1)
-        .and change { ins.limiter_60_mins.remaining }.by(-1)
+        .and change { ins.limiter_60_secs.remaining }.by(-1)
         .and change { ins.assets_limiter_10_secs.remaining }.by(0)
     end
 
@@ -82,8 +106,175 @@ describe RequestsRateLimiter do
           ins.request.env['DISCOURSE_IS_ASSET_PATH'] = true
         end
       }.to change { ins.limiter_10_secs.remaining }.by(0)
-        .and change { ins.limiter_60_mins.remaining }.by(0)
+        .and change { ins.limiter_60_secs.remaining }.by(0)
         .and change { ins.assets_limiter_10_secs.remaining }.by(-1)
+    end
+
+    it "does not yield if a limit is reached and rate limit mode is block" do
+      global_setting :max_reqs_per_ip_per_10_seconds, 1
+      x = 0
+      ins = instance
+
+      # 2nd iteration is rate limited
+      2.times do
+        ins.apply_limits! do
+          x += 1
+        end
+      end
+      expect(x).to eq(1)
+      expect(Rails.logger.warnings).to eq(0)
+    end
+
+    it "yields if rate limits are skipped" do
+      global_setting :max_reqs_per_ip_mode, "none"
+      x = 0
+      instance.apply_limits! do
+        x += 1
+      end
+      expect(x).to eq(1)
+    end
+
+    it "yields if a rate limit is reached and rate limit mode is warn" do
+      global_setting :max_reqs_per_ip_mode, "warn"
+      global_setting :max_reqs_per_ip_per_10_seconds, 1
+      ins = instance
+      x = 0
+      2.times do
+        ins.apply_limits! do
+          x += 1
+        end
+      end
+      expect(x).to eq(2)
+      expect(Rails.logger.warnings).to eq(1)
+    end
+
+    it "does not yield if a rate limit is reached and rate limit mode is warn+block" do
+      global_setting :max_reqs_per_ip_mode, "warn+block"
+      global_setting :max_reqs_per_ip_per_10_seconds, 1
+      ins = instance
+      x = 0
+      2.times do
+        ins.apply_limits! do
+          x += 1
+        end
+      end
+      expect(x).to eq(1)
+      expect(Rails.logger.warnings).to eq(1)
+    end
+
+    it "returns yield results if no rate limit is reached or rate limits are disabled" do
+      res = instance.apply_limits! do
+        "hello world"
+      end
+      expect(res).to eq("hello world")
+
+      global_setting :max_reqs_per_ip_mode, "none"
+      res = instance.apply_limits! do
+        "hello world2"
+      end
+      expect(res).to eq("hello world2")
+    end
+
+    it "returns the right error response when applying per-user per-10-seconds " \
+    "rate limits" do
+      global_setting :max_reqs_per_ip_per_10_seconds, 1
+      global_setting :skip_per_ip_rate_limit_trust_level, 2
+      ins = instance({}, user)
+      x = 0
+      ins.apply_limits! do
+        x += 1
+      end
+      response = ins.apply_limits! do
+        x += 1
+      end
+      expect(x).to eq(1)
+      assert_rate_limit_response(response, "id_10_secs_limit")
+    end
+
+    it "returns the right error response when applying per-ip per-10-seconds " \
+    "rate limits" do
+      global_setting :max_reqs_per_ip_per_10_seconds, 1
+      global_setting :skip_per_ip_rate_limit_trust_level, 3
+      ins = instance({}, user)
+      x = 0
+      ins.apply_limits! do
+        x += 1
+      end
+      response = ins.apply_limits! do
+        x += 1
+      end
+      expect(x).to eq(1)
+      assert_rate_limit_response(response, "ip_10_secs_limit")
+    end
+
+    it "returns the right error response when applying per-user per-minute " \
+    "rate limits" do
+      global_setting :max_reqs_per_ip_per_minute, 1
+      global_setting :skip_per_ip_rate_limit_trust_level, 2
+      ins = instance({}, user)
+      x = 0
+      ins.apply_limits! do
+        x += 1
+      end
+      response = ins.apply_limits! do
+        x += 1
+      end
+      expect(x).to eq(1)
+      assert_rate_limit_response(response, "id_60_secs_limit")
+    end
+
+    it "returns the right error response when applying per-ip per-minute " \
+    "rate limits" do
+      global_setting :max_reqs_per_ip_per_minute, 1
+      global_setting :skip_per_ip_rate_limit_trust_level, 3
+      ins = instance({}, user)
+      x = 0
+      ins.apply_limits! do
+        x += 1
+      end
+      response = ins.apply_limits! do
+        x += 1
+      end
+      expect(x).to eq(1)
+      assert_rate_limit_response(response, "ip_60_secs_limit")
+    end
+
+    it "returns the right error response when applying assets per-ip " \
+    "per-10-seconds rate limits" do
+      global_setting :max_asset_reqs_per_ip_per_10_seconds, 1
+      global_setting :skip_per_ip_rate_limit_trust_level, 3
+      env = {}
+      ins = instance(env, user)
+      x = 0
+      ins.apply_limits! do
+        env["DISCOURSE_IS_ASSET_PATH"] = true
+        x += 1
+      end
+      response = ins.apply_limits! do
+        env["DISCOURSE_IS_ASSET_PATH"] = true
+        x += 1
+      end
+      expect(x).to eq(1)
+      assert_rate_limit_response(response, "ip_assets_10_secs_limit")
+    end
+
+    it "returns the right error response when applying assets per-user " \
+    "per-10-seconds rate limits" do
+      global_setting :max_asset_reqs_per_ip_per_10_seconds, 1
+      global_setting :skip_per_ip_rate_limit_trust_level, 2
+      env = {}
+      ins = instance(env, user)
+      x = 0
+      ins.apply_limits! do
+        env["DISCOURSE_IS_ASSET_PATH"] = true
+        x += 1
+      end
+      response = ins.apply_limits! do
+        env["DISCOURSE_IS_ASSET_PATH"] = true
+        x += 1
+      end
+      expect(x).to eq(1)
+      assert_rate_limit_response(response, "id_assets_10_secs_limit")
     end
   end
 end

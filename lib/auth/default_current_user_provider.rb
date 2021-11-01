@@ -92,10 +92,9 @@ class Auth::DefaultCurrentUserProvider
       begin
         cookie = DiscourseAuthCookie.parse(auth_cookie)
         # the age check here is not super accurate since the
-        # maximum_session_age site setting can change after the
-        # auth token has been created. skip the check here and a
-        # more accurate age check is done in the SQL query when
-        # looking up the auth token record
+        # maximum_session_age site setting can change after the auth token has
+        # been created. skip the check here because a more accurate age check
+        # will be done in the SQL query when looking up the auth token record
         cookie.validate!(validate_age: false)
       rescue  DiscourseAuthCookie::InvalidCookie
         cookie = nil

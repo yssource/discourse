@@ -334,7 +334,13 @@ describe Auth::DefaultCurrentUserProvider do
     expect(cookies["_t"][:expires]).to eq(nil)
   end
 
-  # todo: backward compatibility test
+  it "v0 of auth cookie is still acceptable" do
+    token = UserAuthToken.generate!(user_id: user.id).unhashed_auth_token
+    ip = "10.0.0.1"
+    env = { "HTTP_COOKIE" => "_t=#{token}", "REMOTE_ADDR" => ip }
+    cookies = {}
+    expect(provider('/', env).current_user.id).to eq(user.id)
+  end
 
   it "correctly rotates tokens" do
     SiteSetting.maximum_session_age = 3
@@ -362,7 +368,12 @@ describe Auth::DefaultCurrentUserProvider do
 
     cookies = {}
     provider2.refresh_session(user, {}, cookies)
-    expect(cookies["_t"][:value]).not_to eq(unhashed_token)
+    expect(
+      DiscourseAuthCookie.parse(cookies["_t"][:value]).token
+    ).not_to eq(unhashed_token)
+    expect(
+      DiscourseAuthCookie.parse(cookies["_t"][:value]).token.size
+    ).to eq(32)
 
     token.reload
     expect(token.auth_token_seen).to eq(false)
@@ -695,5 +706,18 @@ describe Auth::DefaultCurrentUserProvider do
         }.to raise_error(RateLimiter::LimitExceeded)
       end
     end
+  end
+
+  it "ignores a valid auth cookie that has been tampered with" do
+    cookies = {}
+    provider('/').log_on_user(user, {}, cookies)
+
+    cookie = cookies["_t"][:value]
+    # attempt to modify the trust level in the cookie
+    cookie[cookie.index("tl:") + 3] = "4"
+
+    ip = "10.0.0.1"
+    env = { "HTTP_COOKIE" => "_t=#{cookie}", "REMOTE_ADDR" => ip }
+    expect(provider('/', env).current_user).to eq(nil)
   end
 end

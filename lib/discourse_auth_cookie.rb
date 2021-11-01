@@ -23,7 +23,7 @@ class DiscourseAuthCookie
   def self.parse(raw_cookie, secret = Rails.application.secret_key_base)
     # v0 of the cookie was simply the auth token itself. we need this for
     # backward compatibility so we don't wipe out existing sessions
-    return new(token: raw_cookie) if raw_cookie.size <= TOKEN_SIZE
+    return new(token: raw_cookie) if raw_cookie.size == TOKEN_SIZE
 
     data, sig = raw_cookie.split("|", 2)
     validate_signature!(data, sig, secret)

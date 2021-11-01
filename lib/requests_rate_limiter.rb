@@ -27,7 +27,7 @@ class RequestsRateLimiter
     if rollback_incorrect_limiters
       if request.env['DISCOURSE_IS_ASSET_PATH']
         limiter_10_secs.rollback!
-        limiter_60_mins.rollback!
+        limiter_60_secs.rollback!
       else
         assets_limiter_10_secs.rollback!
       end
@@ -52,7 +52,7 @@ class RequestsRateLimiter
     limiter = limiter_10_secs
     limiter.performed!
 
-    limiter = limiter_60_mins
+    limiter = limiter_60_secs
     limiter.performed!
 
     limiter = assets_limiter_10_secs
@@ -61,28 +61,6 @@ class RequestsRateLimiter
     nil
   rescue RateLimiter::LimitExceeded
     limiter
-  end
-
-  def check_user_api_key_limits!
-    return if !user_api_key_request?
-
-    limiter = user_api_key_limiter_1_day
-    limiter.performed!
-
-    limiter = user_api_key_limiter_60_mins
-    limiter.performed!
-    nil
-  rescue RateLimiter::LimitExceeded
-    limiter
-  end
-
-  def check_admin_api_key_limits!
-    return if Rails.env.profile? || !admin_api_key_request?
-
-    admin_api_key_limiter.performed!
-    nil
-  rescue RateLimiter::LimitExceeded
-    admin_api_key_limiter
   end
 
   def block_mode?
@@ -115,11 +93,11 @@ class RequestsRateLimiter
     )
   end
 
-  def limiter_60_mins
-    return @limiter_60_mins if @limiter_60_mins
+  def limiter_60_secs
+    return @limiter_60_secs if @limiter_60_secs
 
-    error_code = limit_on_user_id? ? "id_60_mins_limit" : "ip_60_mins_limit"
-    @limiter_60_mins = RateLimiter.new(
+    error_code = limit_on_user_id? ? "id_60_secs_limit" : "ip_60_secs_limit"
+    @limiter_60_secs = RateLimiter.new(
       nil,
       "global_ip_limit_60_#{user_ip_or_id}",
       GlobalSetting.max_reqs_per_ip_per_minute,
@@ -158,17 +136,17 @@ class RequestsRateLimiter
     type = limit_on_user_id? ? "user id" : "IP"
     if limiter == limiter_10_secs
       Discourse.warn(
-        "Global IP rate limit exceeded for #{type} #{user_ip_or_id}: 10 seconds rate limit",
+        "Global rate limit exceeded for #{type} #{user_ip_or_id}: 10 seconds rate limit",
         uri: request.env["REQUEST_URI"]
       )
-    elsif limiter == limiter_60_mins
+    elsif limiter == limiter_60_secs
       Discourse.warn(
-        "Global IP rate limit exceeded for #{type} #{user_ip_or_id}: 60 minutes rate limit",
+        "Global rate limit exceeded for #{type} #{user_ip_or_id}: 60 seconds rate limit",
         uri: request.env["REQUEST_URI"]
       )
     elsif limiter == assets_limiter_10_secs
       Discourse.warn(
-        "Global asset IP rate limit exceeded for #{type} #{user_ip_or_id}: 10 second rate limit",
+        "Global asset rate limit exceeded for #{type} #{user_ip_or_id}: 10 second rate limit",
         uri: request.env["REQUEST_URI"]
       )
     end
